@@ -2836,10 +2836,10 @@ case 'stify':
     }
     break;
   
-case 'ytmp4':
-      case 'ytv':
-        case 'yt':
-          case 'video':
+    case 'ytmp4':
+case 'ytv':
+case 'yt':
+case 'video':
   try {
     if (isBan) return m.reply(mess.banned);
     if (isBanChat) return m.reply(mess.bangc);
@@ -2852,36 +2852,40 @@ case 'ytmp4':
     m.reply(mess.wait);
     await doReact("🕘");
 
-    const fetchVideoData = async (quality) => {
-      const apiUrl = `https://api.neoxr.eu/api/youtube?url=${encodeURIComponent(text)}&type=video&quality=${quality}&apikey=ExyXyz`;
-      const response = await fetch(apiUrl);
-      return response.json();
-    };
+    // Fetch video information from the new API
+    const infoApiUrl = `https://exy-rest-api.vercel.app/api/ytinfo?url=${encodeURIComponent(text)}`;
+    const response = await fetch(infoApiUrl);
+    const videoData = await response.json();
 
-    const qualities = ['1080p60', '1080p', '720p60', '720p', '480p', '360p', '240p'];
-    let videoData;
-    for (const quality of qualities) {
-      videoData = await fetchVideoData(quality);
-      if (videoData.status) break;
-    }
+    if (response.ok) {
+      const { 
+        '1_title': videoTitle, 
+        '2_thumbnail': videoThumbnail, 
+        '3_artist': videoUploader, 
+        '4_views': videoViews, 
+        '5_duration': videoDuration 
+      } = videoData;
 
-    if (videoData.status) {
-      const { title: videoTitle, thumbnail: videoThumbnail, duration: videoTimestamp, channel: videoUploader, publish: videoUploadDate, data: { filename, url, size } } = videoData;
+      const videoUrl = `https://exy-rest-api.vercel.app/api/youtube2?url=${encodeURIComponent(text)}`;
+
+      // Fetch the video size
+      const headResponse = await fetch(videoUrl, { method: 'HEAD' });
+      const contentLength = headResponse.headers.get('content-length');
+      const sizeInMB = (contentLength / (1024 * 1024)).toFixed(2);
 
       const thumbnailMessage = {
         image: { url: videoThumbnail },
-        video: { url },
+        video: { url: videoUrl },
         mimetype: 'video/mp4',
-        fileName: filename,
         caption: `
 ╭═════════•∞•══╮
 │⿻ *EKUSHI ☆*
 │  *Youtube Player* 
 │⿻ *Title:* ${videoTitle}
-│⿻ *Duration:* ${videoTimestamp}
+│⿻ *Duration:* ${videoDuration} seconds
+│⿻ *Size:* ${sizeInMB} MB
 │⿻ *Uploader:* ${videoUploader}
-│⿻ *Size:* ${size}
-│⿻ *Upload Date:* ${videoUploadDate}
+│⿻ *Views:* ${videoViews.toLocaleString()}
 ╰══•∞•═════════╯
         `,
       };
@@ -2898,6 +2902,8 @@ case 'ytmp4':
     await doReact("❌");
   }
   break;
+
+      
 
 
 
